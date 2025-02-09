@@ -7,6 +7,12 @@ const __dirname = path.dirname(__filename);
 
 export default {
   mode: 'development',
+  target: 'web', // Добавили target
+  entry: './src/index.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js',
+  },
   module: {
     rules: [
       {
@@ -34,11 +40,6 @@ export default {
       },
     ],
   },
-  entry: './src/index.js',
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
-  },
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.html',
@@ -46,8 +47,13 @@ export default {
     }),
   ],
   devServer: {
-    static: './dist',
-    port: 8081,
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
+    port: 8083,
     open: true,
+    host: 'localhost', // Или '127.0.0.1' или '0.0.0.0'
+    hot: true,          // Явно включили HMR
+    liveReload: true   //Явно включили liveReload
   },
 };

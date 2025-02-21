@@ -53,7 +53,7 @@ export default {
     port: 8083,
     open: true,
     host: 'localhost', // Или '127.0.0.1' или '0.0.0.0'
-    hot: true,          // Явно включили HMR
-    liveReload: true   //Явно включили liveReload
+    hot: true, // Явно включили HMR
+    liveReload: true, // Явно включили liveReload
   },
 };

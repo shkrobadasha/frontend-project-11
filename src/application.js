@@ -14,11 +14,11 @@ export default () => {
       .then(() => {
         console.log('i18next initialized successfully (Promises)');
         console.log(i18n.options.resources);
-        resolve(i18n); // Resolve с экземпляром i18n, если вам он нужен снаружи
+        resolve(i18n); 
       })
       .catch((error) => {
         console.error('i18next initialization failed (Promises)', error);
-        reject(error); // Отклоните Promise в случае ошибки
+        reject(error); 
       });
   });
 
@@ -56,6 +56,8 @@ export default () => {
   // внизу нужно все передать в рендер для инициализации нач. сост
   // но мб надо для минм рендеров общую функцию
   // renderFeeds(elements, initialState);
+  const { renderForm } = watch(elements, state)
+  renderForm()
 
   initI18n()
     .then((i18nInstance) => {

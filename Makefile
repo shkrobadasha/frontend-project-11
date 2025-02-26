@@ -1,5 +1,5 @@
 develop:
-	npx webpack serve
+	npx webpack serve -- --stats-error-details
 
 install:
 	npm ci

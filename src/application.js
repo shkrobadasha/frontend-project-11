@@ -1,13 +1,13 @@
-/*import i18next from 'i18next';
-import { validate } from 'webpack';
+
+console.log('hello')
+import i18next from 'i18next';
 import watch from './view.js';
 import resources from './locales/index.js';
 
+export default () => {
+  const i18n = i18next.createInstance();
 
-/*export default () => {
-  //const i18n = i18next.createInstance();
-
-  /*const initI18n = () => new Promise((resolve, reject) => {
+  const initI18n = () => new Promise((resolve, reject) => {
     i18n.init({
       lng: 'ru',
       resources,
@@ -54,15 +54,10 @@ import resources from './locales/index.js';
   elements.form.addEventListener('submit', (e) => {
   });
 
-  // внизу нужно все передать в рендер для инициализации нач. сост
-  // но мб надо для минм рендеров общую функцию
-  // renderFeeds(elements, initialState);
-  const { renderForm } = watch(elements, state)
-  renderForm()
 
-  /*initI18n()
+  initI18n()
     .then((i18nInstance) => {
       const { renderForm } = watch(elements, i18nInstance, state);
       renderForm();
     });
-};*/
+};

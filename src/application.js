@@ -1,12 +1,13 @@
-import i18next from 'i18next';
+/*import i18next from 'i18next';
 import { validate } from 'webpack';
 import watch from './view.js';
 import resources from './locales/index.js';
 
-export default () => {
-  const i18n = i18next.createInstance();
 
-  const initI18n = () => new Promise((resolve, reject) => {
+/*export default () => {
+  //const i18n = i18next.createInstance();
+
+  /*const initI18n = () => new Promise((resolve, reject) => {
     i18n.init({
       lng: 'ru',
       resources,
@@ -59,9 +60,9 @@ export default () => {
   const { renderForm } = watch(elements, state)
   renderForm()
 
-  initI18n()
+  /*initI18n()
     .then((i18nInstance) => {
       const { renderForm } = watch(elements, i18nInstance, state);
       renderForm();
     });
-};
+};*/

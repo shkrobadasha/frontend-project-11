@@ -8,7 +8,22 @@ export default {
       buttonText: 'Добавить',
       exampleText: 'Пример: https://lorem-rss.hexlet.app/feed',
     },
+    errors: {
+      exists: 'RSS уже существует',
+      //required: 'Не должно быть пустым',
+      notUrl: 'Ссылка должна быть валидным URL',
+      noRss: 'Ресурс не соджержит валидный RSS',
+      network: 'Ошибка сети',
+      unknown: 'Неизвестная ошибка',
+    },
+    sucсess: {
+      successMessage: 'RSS успешно загружен',
+    },
+    interface: {
+      feedsTitle: 'Фиды'
+    },
 
   },
+  
   // скорее всего придется добавлять текст фиды
 };

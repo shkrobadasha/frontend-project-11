@@ -1,26 +1,31 @@
-
-console.log('hello')
 import i18next from 'i18next';
 import watch from './view.js';
 import resources from './locales/index.js';
+import * as yup from 'yup';
 
 export default () => {
   const i18n = i18next.createInstance();
 
   const initI18n = () => new Promise((resolve, reject) => {
-    i18n.init({
+    i18next.init({
       lng: 'ru',
       resources,
     })
-      .then(() => {
-        console.log('i18next initialized successfully (Promises)');
-        console.log(i18n.options.resources);
-        resolve(i18n); 
-      })
-      .catch((error) => {
-        console.error('i18next initialization failed (Promises)', error);
-        reject(error); 
+    .then(() => {
+      yup.setLocale({
+        mixed: {
+          notOneOf: () => i18next.t('errors.exists'),
+        },
+        string: {
+          url: () => i18next.t('errors.notUrl'),
+        },
       });
+      resolve(i18next);
+    })
+    .catch((error) => {
+      console.error('i18next initialization failed (Promises)', error);
+      reject(error);
+    });
   });
 
   const elements = {
@@ -30,34 +35,67 @@ export default () => {
     addButton: document.querySelector('button[type="submit"]'),
     feedsContainer: document.querySelector('.feeds'),
     feedsLinksContainer: document.querySelector('.posts'),
+    feedbackContainer: document.querySelector('.feedback'),
   };
 
-  // Model - структурированное хранение данных
   const state = {
-    form: { },
+    form: {},
     loadingProcess: {
-      error: '',
-      // состояние процесса загрузки(loading, sucessful, failed)
+      error: [],
+      status: 'notLoad'
     },
     uiState: {
-      // id просмотренных ссылок
       seenPosts: [],
-      // обычное и когда какое-то окно
-      status: 'typical', // openWindow
+      status: 'typical',
     },
-    // просто добавляются названия и все
     feeds: [],
-    // здесь будет обьект, который содержит ссылки и их id
     feedsLinks: [],
   };
 
-  elements.form.addEventListener('submit', (e) => {
-  });
+  const linkProcessing = (i18n, watchedState) => (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const feedName = formData.get('url');
 
+    const schema = yup.string().url().trim().required().notOneOf(watchedState.feeds);
+
+    //watchedState.loadingProcess.status = 'loading'; //см надо ли оно 
+    watchedState.loadingProcess.error = [];
+
+    schema.validate(feedName, { abortEarly: false })
+      .then(() => {
+        
+        //будем менять статус на загрузку, пока без запросов так
+        watchedState.loadingProcess.status = 'successful';
+        
+        //буду делать запрос на сервер + проверять валидность + парсить(отдел. функция)
+        watchedState.feeds.push(feedName)
+        form.reset();
+        form.querySelector('input').focus();
+      })
+      .catch((error) => {
+        console.log(error.message)
+        watchedState.loadingProcess.status = 'failed'
+       // поменять
+        let errorMessageKey = 'errors.unknownError'; 
+        if (error instanceof yup.ValidationError) {
+          errorMessageKey = error.message === i18n.t('errors.notUrl') ? 'errors.notUrl' : 'errors.exists'; 
+        } else if (error.message === 'Network response was not ok') {
+          errorMessageKey = 'errors.networkError';
+        } else {
+          console.error("Неизвестная ошибка:", error);
+        }
+
+        watchedState.loadingProcess.error = [i18next.t(errorMessageKey)];
+        watchedState.loadingProcess.status = 'failed';
+      });
+  };
 
   initI18n()
     .then((i18nInstance) => {
-      const { renderForm } = watch(elements, i18nInstance, state);
+      const { watchedState, renderForm } = watch(elements, i18nInstance, state);
       renderForm();
+      elements.form.addEventListener('submit', linkProcessing(i18nInstance, watchedState));
     });
 };

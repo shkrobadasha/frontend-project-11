@@ -1,5 +1,9 @@
 import onChange from 'on-change';
-//почему-то ссылки добавля.тся в фиды со второго раза 
+
+//функция - парсер, которая вызывается при добавлении фида(ссылки)
+//получает ссылку, переходит по ней, парсит, 
+//вызывает вью, отдает распаршенные уже данные и вью их отрисовывает
+//потом ставим таймер для вызова этого парсера 
 
 const renderFeeds = (elements, t, state) => {
   elements.feedsContainer.innerHTML = '';
@@ -31,13 +35,16 @@ const renderFeeds = (elements, t, state) => {
 }
 
 //Сделать функцию,отрисовывающую ссылки фидов
+const renderPosts = elements 
 
 export default (elements, i18n, state) => {
   const { t } = i18n;
   const watchedState = onChange(state, (path, value) => {
 
-    console.log({path});
+   // console.log({path});
 
+   //если добавился новый фид, он отрисовался и в теории все его штуки тоже могут отрисоваться 
+   //доделать отрисовку частей фида 
     if (path === 'feeds'){
       //найти как отрисовывается зеленый текст
       elements.form.querySelector('input').classList.remove('is-invalid');

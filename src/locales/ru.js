@@ -20,7 +20,9 @@ export default {
       successMessage: 'RSS успешно загружен',
     },
     interface: {
-      feedsTitle: 'Фиды'
+      feedsTitle: 'Фиды',
+      postsTitle: 'Посты',
+      postsPreview: 'Просмотры',
     },
 
   },

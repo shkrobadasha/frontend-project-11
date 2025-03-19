@@ -22,7 +22,7 @@ export default {
     interface: {
       feedsTitle: 'Фиды',
       postsTitle: 'Посты',
-      postsPreview: 'Просмотры',
+      postsPreview: 'Просмотр',
     },
 
   },

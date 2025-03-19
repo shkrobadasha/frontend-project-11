@@ -14,7 +14,8 @@ export default (data) => {
     const feedItems = currentData.querySelectorAll("channel > item");
     const postsArray = Array.from(feedItems).map((item) => ({
         name: item.querySelector('title').textContent,
-        url: item.querySelector('link').textContent
+        url: item.querySelector('link').textContent,
+        id: _.uniqueId(),
     }));
 
     

@@ -1,20 +1,12 @@
 import onChange from 'on-change';
 
-// Нужна функция, которая запускается каждые 5 секунд, пробегается по массиву фидов, делает запросы(запустим через промис олл)
-// когда делает запрос, то ссылка закидывает в парсер, оттуда возвращает обект с данными 
-// обект с данными закидываем во вью, которая отрисовывает данные для фидов и для постов 
-//в идеале нужно сравнивать посты и если там что-то обновилось, то это и отрисовать, но похуй
-//нужно понять, как делать бесконечный таймер, либо сделать функцию, которая отрисуется все фиды
-
 const renderTemplate = (title) => {
-  //console.log('hiii')
   const firstDiv = document.createElement('div');
   firstDiv.classList.add('card', 'border-0');
   const secondDivTitle = document.createElement('div');
   secondDivTitle.classList.add('card-body');
   const hFeedsTitle = document.createElement('h2');
   hFeedsTitle.classList.add('card-title', 'h4');
- //hFeedsTitle.textContent = i18n.t(`${title}`);
   hFeedsTitle.textContent = `${title}`;
   secondDivTitle.append(hFeedsTitle);
   const ulElem = document.createElement('ul');
@@ -22,11 +14,7 @@ const renderTemplate = (title) => {
   firstDiv.append(secondDivTitle, ulElem);
   return firstDiv
 }
-//для каждой ссылки мы записываем
-//у каждого из элементов проверяем, если кардбордер есть, сразу переходим к рисунку контента, если нет - все делаем заново
-//не вызывается
 
-//const renderPosts = elements 
 
 export default (elements, i18n, state) => {
 
@@ -38,7 +26,6 @@ export default (elements, i18n, state) => {
       elements.feedbackContainer.classList.add('text-sucessful');
       elements.feedbackContainer.classList.remove('text-danger');
       elements.feedbackContainer.textContent = t('sucсess.successMessage');
-      //console.log('фид можно добавлять')
     }else if (path === 'loadingProcess.error'){
       elements.form.querySelector('input').classList.add('is-invalid');
       elements.feedbackContainer.classList.add('text-danger');
@@ -48,10 +35,9 @@ export default (elements, i18n, state) => {
         strOfErrors += `${error} `
       });
       elements.feedbackContainer.textContent = `${strOfErrors.trim()}`
-      //console.log('не фид, а хуйня')
+
     }
   });
-
 
   const renderForm = () => {
     const { mainContainer, form } = elements;
@@ -59,55 +45,46 @@ export default (elements, i18n, state) => {
     littleTitle.classList.add('lead');
     littleTitle.textContent = t('initialization.littleTitle');
     mainContainer.prepend(littleTitle);
-
     const title = document.createElement('h1');
     title.classList.add('display-3', 'mb-0');
     title.textContent = t('initialization.title');
     mainContainer.prepend(title);
-
     const inputText = document.createElement('label');
     inputText.setAttribute('for', 'url-input');
     inputText.textContent = t('initialization.inputText');
     form.querySelector('.form-floating').append(inputText);
-
     const addButton = document.createElement('button');
     addButton.classList.add('h-100', 'btn', 'btn-lg', 'btn-primary', 'px-sm-5');
     addButton.setAttribute('type', 'submit');
     addButton.setAttribute('aria-label', 'add');
     addButton.textContent = t('initialization.buttonText');
     form.querySelector('.col-auto').append(addButton);
-
     const exampleText = document.createElement('p');
     exampleText.classList.add('mt-2', 'mb-0', 'text-muted');
     exampleText.textContent = t('initialization.exampleText');
     const textDanger = mainContainer.querySelector('.text-danger');
     mainContainer.insertBefore(exampleText, textDanger);
-
   };
 
-  const renderContent = (elements, parsedData) => {
 
-    if(elements.feedsContainer.querySelector('.card') === null){
-      const firstFeedsEl = renderTemplate(`${i18n.t('interface.feedsTitle')}`);
-      elements.feedsContainer.append(firstFeedsEl);
-    }
+  const checkNewPosts = (postsArray, elements) => {
+     const currentPosts = postsArray.map((post) => post.name);
+     const aElem = elements.postsContainer.querySelector('ul').querySelectorAll('a');
+     const existsPosts = Array.from(aElem).map(el => el.textContent);
+     if (JSON.stringify(currentPosts) !== JSON.stringify(existsPosts)) {
+      const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name))
+      renderPosts(elements, differArray)
+     }
+  }
+
+
+  const renderPosts = (elements, postsArray) => {
+    //const postsArray = parsedData.postsArray;
     if(elements.postsContainer.querySelector('.card') === null){
       const firstPostsEl = renderTemplate(`${i18n.t('interface.postsTitle')}`);
       elements.postsContainer.append(firstPostsEl);
     }
-    //добавление ссылки для фида
-    const liFeedElem = document.createElement('li');
-    liFeedElem.classList.add('list-group-item', 'border-0', 'border-end-0');
-    const hThreeElem = document.createElement('h3');
-    hThreeElem.classList.add('h6', 'm-0');
-    hThreeElem.textContent = `${parsedData.feedTitle}`;
-    const pElem = document.createElement('p');
-    pElem.classList.add('m-0', 'small', 'text-black-50');
-    pElem.textContent =  `${parsedData.feedDescription}`;
-    liFeedElem.append(hThreeElem, pElem);
-    elements.feedsContainer.querySelector('ul').prepend(liFeedElem);
-  
-    const arrayOfPostsEl = parsedData.postsArray.map((post, index) => {
+    const arrayOfPostsEl = postsArray.map((post, index) => {
       const liPostElem = document.createElement('li');
       liPostElem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
       const aPostElem = document.createElement('a');
@@ -129,12 +106,31 @@ export default (elements, i18n, state) => {
     });
     const newPostsContainer = elements.postsContainer.querySelector('ul');
     arrayOfPostsEl.forEach(postElement => newPostsContainer.append(postElement));
-  
+  }
+
+
+  const renderContent = (elements, parsedData) => {
+    if(elements.feedsContainer.querySelector('.card') === null){
+      const firstFeedsEl = renderTemplate(`${i18n.t('interface.feedsTitle')}`);
+      elements.feedsContainer.append(firstFeedsEl);
+    }
+    const liFeedElem = document.createElement('li');
+    liFeedElem.classList.add('list-group-item', 'border-0', 'border-end-0');
+    const hThreeElem = document.createElement('h3');
+    hThreeElem.classList.add('h6', 'm-0');
+    hThreeElem.textContent = `${parsedData.feedTitle}`;
+    const pElem = document.createElement('p');
+    pElem.classList.add('m-0', 'small', 'text-black-50');
+    pElem.textContent =  `${parsedData.feedDescription}`;
+    liFeedElem.append(hThreeElem, pElem);
+    elements.feedsContainer.querySelector('ul').prepend(liFeedElem);
+    renderPosts(elements, parsedData.postsArray)
   }
 
   return {
     watchedState,
     renderForm,
     renderContent,
+    checkNewPosts,
   };
 };

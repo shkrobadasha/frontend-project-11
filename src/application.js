@@ -88,12 +88,10 @@ export default () => {
           checkNewPosts(parsedData.postsArray, elements)
         }).catch((error) => {
         let errorMessageKey = ''; 
-        if (error instanceof yup.ValidationError) {
-          if (error.message === i18n.t('errors.noRss')) {
-            errorMessageKey = 'errors.noRss';
-          } else if (error.message === 'Network response was not ok') {
-            errorMessageKey = 'errors.network';
-          }
+        if (error.message === i18n.t('errors.noRss')) {
+          errorMessageKey = 'errors.noRss';
+        } else if (error.message === 'Network response was not ok') {
+          errorMessageKey = 'errors.network';
         } else {
           errorMessageKey = 'errors.unknown';
         }
@@ -132,19 +130,18 @@ export default () => {
         }).catch((error) => {
           //вот здесь не отрабатывает ошибка 
           let errorMessageKey = ''; 
-          if (error instanceof yup.ValidationError) {
-            if (error.message === i18n.t('errors.noRss')) {
-              errorMessageKey = 'errors.noRss';
-            } else if (error.message === 'Network response was not ok') {
-              errorMessageKey = 'errors.network';
-            }
+          if (error.message === i18n.t('errors.noRss')) {
+            errorMessageKey = 'errors.noRss';
+          } else if (error.message === 'Network response was not ok') {
+            errorMessageKey = 'errors.network';
           } else {
             errorMessageKey = 'errors.unknown';
           }
-        });
- 
           watchedState.loadingProcess.error = [i18next.t(errorMessageKey)];
           watchedState.loadingProcess.status = 'failed';
+        });
+ 
+          
  
       })
       .catch((error) => {

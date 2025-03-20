@@ -15,6 +15,7 @@ export default (data) => {
     const postsArray = Array.from(feedItems).map((item) => ({
         name: item.querySelector('title').textContent,
         url: item.querySelector('link').textContent,
+        description: item.querySelector('description').textContent,
         id: _.uniqueId(),
     }));
 

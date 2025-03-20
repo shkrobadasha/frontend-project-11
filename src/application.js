@@ -76,7 +76,7 @@ export default () => {
       status: 'typical',
     },
     feeds: [], //хранится их ссылка + id - поменять мб только на ссылки(?) зачем id 
-    feedsLinks: [],
+    readPosts: [],
   };
  
  

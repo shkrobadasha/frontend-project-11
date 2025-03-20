@@ -23,6 +23,8 @@ export default {
       feedsTitle: 'Фиды',
       postsTitle: 'Посты',
       postsPreview: 'Просмотр',
+      followButton: 'Читать полностью',
+      closeButton: 'Закрыть',
     },
 
   },

@@ -21,15 +21,17 @@ export default (elements, i18n, state) => {
   const { t } = i18n;
   const watchedState = onChange(state, (path, value) => {
 
+    //class="feedback m-0 position-absolute small text-success"
+
     if (path === 'feeds'){
       elements.form.querySelector('input').classList.remove('is-invalid');
-      elements.feedbackContainer.classList.add('text-sucessful');
+      elements.feedbackContainer.classList.add('text-success');
       elements.feedbackContainer.classList.remove('text-danger');
       elements.feedbackContainer.textContent = t('sucсess.successMessage');
     }else if (path === 'loadingProcess.error'){
       elements.form.querySelector('input').classList.add('is-invalid');
       elements.feedbackContainer.classList.add('text-danger');
-      elements.feedbackContainer.classList.remove('text-sucessful');
+      elements.feedbackContainer.classList.remove('text-success');
       let strOfErrors = '';
       watchedState.loadingProcess.error.forEach((error) => {
         strOfErrors += `${error} `
@@ -75,11 +77,11 @@ export default (elements, i18n, state) => {
       const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name))
       renderPosts(elements, differArray)
      }
+
   }
 
 
   const renderPosts = (elements, postsArray) => {
-    //const postsArray = parsedData.postsArray;
     if(elements.postsContainer.querySelector('.card') === null){
       const firstPostsEl = renderTemplate(`${i18n.t('interface.postsTitle')}`);
       elements.postsContainer.append(firstPostsEl);
@@ -94,6 +96,10 @@ export default (elements, i18n, state) => {
       aPostElem.setAttribute('target', '_blank');
       aPostElem.setAttribute('rel', 'noopener noreferrer');
       aPostElem.textContent = `${post.name}`;
+      aPostElem.addEventListener('click', () => {
+        aPostElem.classList.remove('fw-bold');
+        aPostElem.classList.add('fw-normal', 'link-secondary');
+      });
       const postButton = document.createElement('button');
       postButton.classList.add('btn', 'btn-outline-primary', 'btn-sm');
       postButton.setAttribute('type', 'button');
@@ -102,6 +108,32 @@ export default (elements, i18n, state) => {
       postButton.setAttribute('data-bs-target', '#modal');
       postButton.textContent = `${i18n.t('interface.postsPreview')}`;
       liPostElem.append(aPostElem, postButton);
+      //вот здесь на кнопку буду вешать обработчик 
+      postButton.addEventListener('click', () => {
+        aPostElem.classList.remove('fw-bold');
+        aPostElem.classList.add('fw-normal', 'link-secondary');
+        const modalWindow = document.getElementById('modal');
+        modalWindow.querySelector('.modal-title').textContent = `${post.name}`;
+        const pElem = document.createElement('p');
+        pElem.textContent = `${post.description}`;
+        document.querySelector('.modal-body').innerHTML = '';
+        document.querySelector('.modal-body').append(pElem);
+        const closeButton = document.createElement('button');
+        closeButton.setAttribute('type', "button");
+        closeButton.classList.add('btn', 'btn-secondary');
+        closeButton.setAttribute('data-bs-dismiss',"modal");
+        closeButton.textContent = `${i18n.t('interface.closeButton')}`;
+        const followButton = document.createElement('button');
+        followButton.setAttribute('type', "button");
+        followButton.classList.add('btn', 'btn-primary');
+        followButton.textContent = `${i18n.t('interface.followButton')}`;
+        followButton.addEventListener('click', () => {
+          window.open(`${post.url}`, '_blank');
+        })
+        document.querySelector('.modal-footer').innerHTML = '';
+        document.querySelector('.modal-footer').append(followButton, closeButton);
+        watchedState.readPosts.push(`${post.id}`);
+      })
       return liPostElem
     });
     const newPostsContainer = elements.postsContainer.querySelector('ul');

@@ -15,13 +15,10 @@ const renderTemplate = (title) => {
   return firstDiv
 }
 
-
 export default (elements, i18n, state) => {
 
   const { t } = i18n;
   const watchedState = onChange(state, (path, value) => {
-
-    //class="feedback m-0 position-absolute small text-success"
 
     if (path === 'feeds'){
       elements.form.querySelector('input').classList.remove('is-invalid');
@@ -68,7 +65,6 @@ export default (elements, i18n, state) => {
     mainContainer.insertBefore(exampleText, textDanger);
   };
 
-
   const checkNewPosts = (postsArray, elements) => {
      const currentPosts = postsArray.map((post) => post.name);
      const aElem = elements.postsContainer.querySelector('ul').querySelectorAll('a');
@@ -77,9 +73,7 @@ export default (elements, i18n, state) => {
       const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name))
       renderPosts(elements, differArray)
      }
-
   }
-
 
   const renderPosts = (elements, postsArray) => {
     if(elements.postsContainer.querySelector('.card') === null){
@@ -108,7 +102,6 @@ export default (elements, i18n, state) => {
       postButton.setAttribute('data-bs-target', '#modal');
       postButton.textContent = `${i18n.t('interface.postsPreview')}`;
       liPostElem.append(aPostElem, postButton);
-      //вот здесь на кнопку буду вешать обработчик 
       postButton.addEventListener('click', () => {
         aPostElem.classList.remove('fw-bold');
         aPostElem.classList.add('fw-normal', 'link-secondary');

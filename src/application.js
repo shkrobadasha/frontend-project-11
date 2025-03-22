@@ -28,10 +28,7 @@ const beforeParser = (url) => {
     })
   })
 };
- 
-//нужно разобраться с обработкой ошибок и использованием финали 
- 
- 
+
 export default () => {
   const i18n = i18next.createInstance();
   const initI18n = () => new Promise((resolve, reject) => {
@@ -43,6 +40,8 @@ export default () => {
       yup.setLocale({
         mixed: {
           notOneOf: () => i18next.t('errors.exists'),
+          required: () => i18next.t('errors.required'),
+
         },
         string: {
           url: () => i18next.t('errors.notUrl'),
@@ -72,10 +71,10 @@ export default () => {
       status: 'notLoad'
     },
     uiState: {
-      seenPosts: [],//там айди просмотренных постов
+      seenPosts: [],
       status: 'typical',
     },
-    feeds: [], //хранится их ссылка + id - поменять мб только на ссылки(?) зачем id 
+    feeds: [],
     readPosts: [],
   };
  
@@ -114,8 +113,6 @@ export default () => {
     const form = e.target;
     const formData = new FormData(form);
     const originalFeedName = formData.get('url');
- 
- 
     const schema = yup.string().url().trim().required().notOneOf(getUrl(watchedState.feeds));
     watchedState.loadingProcess.error = [];
     schema.validate(originalFeedName, { abortEarly: false })
@@ -128,7 +125,6 @@ export default () => {
           form.reset();
           form.querySelector('input').focus();
         }).catch((error) => {
-          //вот здесь не отрабатывает ошибка 
           let errorMessageKey = ''; 
           if (error.message === i18n.t('errors.noRss')) {
             errorMessageKey = 'errors.noRss';
@@ -146,7 +142,6 @@ export default () => {
       })
       .catch((error) => {
         watchedState.loadingProcess.status = 'failed'
-       // нужно будет убрать что типа пока грузится сразу ошибка выпадает 
         let errorMessageKey = 'errors.unknownError'; 
         if (error instanceof yup.ValidationError) {
           errorMessageKey = error.message === i18n.t('errors.notUrl') ? 'errors.notUrl' : 'errors.exists'; 

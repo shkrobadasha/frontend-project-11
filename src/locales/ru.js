@@ -1,5 +1,4 @@
 export default {
-  // возможно все текста верстки + добавленнные
   translation: {
     initialization: {
       title: 'RSS агрегатор',
@@ -10,7 +9,7 @@ export default {
     },
     errors: {
       exists: 'RSS уже существует',
-      //required: 'Не должно быть пустым',
+      required: 'Не должно быть пустым',
       notUrl: 'Ссылка должна быть валидным URL',
       noRss: 'Ресурс не содержит валидный RSS',
       network: 'Ошибка сети',
@@ -26,8 +25,5 @@ export default {
       followButton: 'Читать полностью',
       closeButton: 'Закрыть',
     },
-
   },
-  
-  // скорее всего придется добавлять текст фиды
 };

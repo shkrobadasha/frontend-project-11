@@ -40,7 +40,7 @@ export default () => {
       yup.setLocale({
         mixed: {
           notOneOf: () => i18next.t('errors.exists'),
-          //required: () => i18next.t('errors.required'),
+          required: () => i18next.t('errors.required'),
 
         },
         string: {
@@ -80,7 +80,6 @@ export default () => {
  
   const checker = (watchedState, checkNewPosts, timeout = 5000) => {
     const check = () => {
-      console.log(watchedState.loadingProcess.status)
       const promises = watchedState.feeds.map((feed) => {
         beforeParser(feed)
         .then((parsedData) => {

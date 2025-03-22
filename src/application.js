@@ -65,37 +65,36 @@ export default () => {
   };
  
   const state = {
-    form: {},
     loadingProcess: {
+      //посмотреть с событиями и менять статусы 
       error: [],
-      status: 'notLoad'
+      status: 'notLoad' //еще loading, sucess, fail
     },
     uiState: {
       seenPosts: [],
       status: 'typical',
     },
     feeds: [],
-    readPosts: [],
   };
  
  
   const checker = (watchedState, checkNewPosts, timeout = 5000) => {
     const check = () => {
+      console.log(watchedState.loadingProcess.status)
       const promises = watchedState.feeds.map((feed) => {
         beforeParser(feed)
         .then((parsedData) => {
           checkNewPosts(parsedData.postsArray, elements)
         }).catch((error) => {
-        let errorMessageKey = ''; 
-        if (error.message === i18n.t('errors.noRss')) {
-          errorMessageKey = 'errors.noRss';
-        } else if (error.message === 'Network response was not ok') {
-          errorMessageKey = 'errors.network';
-        } else {
-          errorMessageKey = 'errors.unknown';
-        }
-      });
- 
+          let errorMessageKey = ''; 
+          if (error.message === i18n.t('errors.noRss')) {
+            errorMessageKey = 'errors.noRss';
+          } else if (error.message === 'Network response was not ok') {
+            errorMessageKey = 'errors.network';
+          } else {
+            errorMessageKey = 'errors.unknown';
+          }
+        });
       })
       Promise.all(promises)
       .then(() => {
@@ -106,6 +105,7 @@ export default () => {
       })
     };
     check()
+    
   }
  
   const linkProcessing = (i18n, watchedState, renderContent) => (e) => {
@@ -117,14 +117,16 @@ export default () => {
     watchedState.loadingProcess.error = [];
     schema.validate(originalFeedName, { abortEarly: false })
       .then(() => {
+        watchedState.loadingProcess.status = 'loading';
         beforeParser(originalFeedName)
         .then((parsedData) => {
-          renderContent(elements, parsedData)
-          watchedState.feeds.push(originalFeedName);
+          renderContent(elements, parsedData);
           watchedState.feeds.push({url: originalFeedName, id: _.uniqueId()} );
+          watchedState.loadingProcess.status = 'sucessful'
           form.reset();
           form.querySelector('input').focus();
         }).catch((error) => {
+
           let errorMessageKey = ''; 
           if (error.message === i18n.t('errors.noRss')) {
             errorMessageKey = 'errors.noRss';

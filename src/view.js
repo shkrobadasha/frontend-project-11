@@ -116,6 +116,13 @@ export default (elements, i18n, state) => {
         closeButton.classList.add('btn', 'btn-secondary');
         closeButton.setAttribute('data-bs-dismiss',"modal");
         closeButton.textContent = `${i18n.t('interface.closeButton')}`;
+        closeButton.addEventListener('click', () => {
+          watchedState.uiState.status = 'typical';
+        });
+        const secondCloseButton = modalWindow.querySelector('.btn-close[data-bs-dismiss="modal"]')
+        secondCloseButton.addEventListener('click', () => {
+          watchedState.uiState.status = 'typical';
+        });
         const followButton = document.createElement('button');
         followButton.setAttribute('type', "button");
         followButton.classList.add('btn', 'btn-primary');
@@ -125,14 +132,14 @@ export default (elements, i18n, state) => {
         })
         document.querySelector('.modal-footer').innerHTML = '';
         document.querySelector('.modal-footer').append(followButton, closeButton);
-        watchedState.readPosts.push(`${post.id}`);
+        watchedState.uiState.seenPosts.push(`${post.id}`);
+        watchedState.uiState.status = 'window';
       })
       return liPostElem
     });
     const newPostsContainer = elements.postsContainer.querySelector('ul');
     arrayOfPostsEl.forEach(postElement => newPostsContainer.append(postElement));
   }
-
 
   const renderContent = (elements, parsedData) => {
     if(elements.feedsContainer.querySelector('.card') === null){

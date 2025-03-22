@@ -40,7 +40,7 @@ export default () => {
       yup.setLocale({
         mixed: {
           notOneOf: () => i18next.t('errors.exists'),
-          required: () => i18next.t('errors.required'),
+          //required: () => i18next.t('errors.required'),
 
         },
         string: {

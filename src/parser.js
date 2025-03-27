@@ -16,7 +16,6 @@ export default (data) => {
         name: item.querySelector('title').textContent,
         url: item.querySelector('link').textContent,
         description: item.querySelector('description').textContent,
-        id: _.uniqueId(),
     }));
 
     

@@ -25,6 +25,8 @@ export default (elements, i18n, state) => {
       elements.feedbackContainer.classList.add('text-success');
       elements.feedbackContainer.classList.remove('text-danger');
       elements.feedbackContainer.textContent = t('sucсess.successMessage');
+      elements.form.reset();
+      elements.form.querySelector('input').focus();
     }else if (path === 'loadingProcess.error'){
       elements.form.querySelector('input').classList.add('is-invalid');
       elements.feedbackContainer.classList.add('text-danger');
@@ -34,7 +36,6 @@ export default (elements, i18n, state) => {
         strOfErrors += `${error} `
       });
       elements.feedbackContainer.textContent = `${strOfErrors.trim()}`
-
     }
   });
 
@@ -66,75 +67,42 @@ export default (elements, i18n, state) => {
   };
 
   const checkNewPosts = (postsArray, elements) => {
-     const currentPosts = postsArray.map((post) => post.name);
-     const aElem = elements.postsContainer.querySelector('ul').querySelectorAll('a');
-     const existsPosts = Array.from(aElem).map(el => el.textContent);
-     if (JSON.stringify(currentPosts) !== JSON.stringify(existsPosts)) {
-      const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name))
-      renderPosts(elements, differArray)
+      const currentPosts = postsArray.map((post) => post.name);
+      const existsPosts = watchedState.posts.map((post) => post.name);
+      if (JSON.stringify(currentPosts) !== JSON.stringify(existsPosts)) {
+        const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name))
+        renderPosts(elements, differArray)
      }
   }
+
+
 
   const renderPosts = (elements, postsArray) => {
     if(elements.postsContainer.querySelector('.card') === null){
       const firstPostsEl = renderTemplate(`${i18n.t('interface.postsTitle')}`);
       elements.postsContainer.append(firstPostsEl);
     }
-    const arrayOfPostsEl = postsArray.map((post, index) => {
+    const arrayOfPostsEl = postsArray.map((post) => {
+      post.id = _.uniqueId(),
+      watchedState.posts.push(post)
       const liPostElem = document.createElement('li');
       liPostElem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
       const aPostElem = document.createElement('a');
       aPostElem.classList.add('fw-bold');
       aPostElem.href = `${post.url}`;
-      aPostElem.setAttribute('data-id', `${index + 2}`);
+      aPostElem.setAttribute('data-id', `${post.id}`);
       aPostElem.setAttribute('target', '_blank');
       aPostElem.setAttribute('rel', 'noopener noreferrer');
       aPostElem.textContent = `${post.name}`;
-      aPostElem.addEventListener('click', () => {
-        aPostElem.classList.remove('fw-bold');
-        aPostElem.classList.add('fw-normal', 'link-secondary');
-      });
+
       const postButton = document.createElement('button');
       postButton.classList.add('btn', 'btn-outline-primary', 'btn-sm');
       postButton.setAttribute('type', 'button');
-      postButton.setAttribute('data-id', `${index + 2}`);
+      postButton.setAttribute('data-id', `${post.id}`);
       postButton.setAttribute('data-bs-toggle', 'modal');
       postButton.setAttribute('data-bs-target', '#modal');
       postButton.textContent = `${i18n.t('interface.postsPreview')}`;
-      liPostElem.append(aPostElem, postButton);
-      postButton.addEventListener('click', () => {
-        aPostElem.classList.remove('fw-bold');
-        aPostElem.classList.add('fw-normal', 'link-secondary');
-        const modalWindow = document.getElementById('modal');
-        modalWindow.querySelector('.modal-title').textContent = `${post.name}`;
-        const pElem = document.createElement('p');
-        pElem.textContent = `${post.description}`;
-        document.querySelector('.modal-body').innerHTML = '';
-        document.querySelector('.modal-body').append(pElem);
-        const closeButton = document.createElement('button');
-        closeButton.setAttribute('type', "button");
-        closeButton.classList.add('btn', 'btn-secondary');
-        closeButton.setAttribute('data-bs-dismiss',"modal");
-        closeButton.textContent = `${i18n.t('interface.closeButton')}`;
-        closeButton.addEventListener('click', () => {
-          watchedState.uiState.status = 'typical';
-        });
-        const secondCloseButton = modalWindow.querySelector('.btn-close[data-bs-dismiss="modal"]')
-        secondCloseButton.addEventListener('click', () => {
-          watchedState.uiState.status = 'typical';
-        });
-        const followButton = document.createElement('button');
-        followButton.setAttribute('type', "button");
-        followButton.classList.add('btn', 'btn-primary');
-        followButton.textContent = `${i18n.t('interface.followButton')}`;
-        followButton.addEventListener('click', () => {
-          window.open(`${post.url}`, '_blank');
-        })
-        document.querySelector('.modal-footer').innerHTML = '';
-        document.querySelector('.modal-footer').append(followButton, closeButton);
-        watchedState.uiState.seenPosts.push(`${post.id}`);
-        watchedState.uiState.status = 'window';
-      })
+      liPostElem.append(aPostElem, postButton);        
       return liPostElem
     });
     const newPostsContainer = elements.postsContainer.querySelector('ul');
@@ -156,7 +124,39 @@ export default (elements, i18n, state) => {
     pElem.textContent =  `${parsedData.feedDescription}`;
     liFeedElem.append(hThreeElem, pElem);
     elements.feedsContainer.querySelector('ul').prepend(liFeedElem);
-    renderPosts(elements, parsedData.postsArray)
+    renderPosts(elements, parsedData.postsArray);
+  }
+
+  const changeDuringViewing = (element) => {
+    element.classList.remove('fw-bold');
+    element.classList.add('fw-normal', 'link-secondary');
+  }
+
+  const renderWindow = (button) => {
+    const currentId = button.getAttribute('data-id');
+    const aPostElem = elements.postsContainer.querySelector(`[data-id="${currentId}"]`);
+    aPostElem.classList.remove('fw-bold');
+    aPostElem.classList.add('fw-normal', 'link-secondary');
+    const modalWindow = document.getElementById('modal');
+    modalWindow.querySelector('.modal-title').textContent = `${aPostElem.textContent}`;
+    const pElem = document.createElement('p');
+    const currentDescription = watchedState.posts.filter((elem) => (elem.id === currentId));
+    pElem.textContent = `${currentDescription[0].description}`;
+    document.querySelector('.modal-body').innerHTML = '';
+    document.querySelector('.modal-body').append(pElem);
+    const closeButton = document.createElement('button');
+    closeButton.setAttribute('type', "button");
+    closeButton.classList.add('btn', 'btn-secondary');
+    closeButton.setAttribute('data-bs-dismiss',"modal");
+    closeButton.textContent = `${i18n.t('interface.closeButton')}`;
+    const followButton = document.createElement('button');
+    followButton.setAttribute('type', "button");
+    followButton.classList.add('btn', 'btn-primary');
+    followButton.textContent = `${i18n.t('interface.followButton')}`;
+    document.querySelector('.modal-footer').innerHTML = '';
+    document.querySelector('.modal-footer').append(followButton, closeButton);
+    watchedState.uiState.seenPosts.push(`${button.getAttribute('data-id')}`);
+    watchedState.uiState.status = 'window';
   }
 
   return {
@@ -164,5 +164,7 @@ export default (elements, i18n, state) => {
     renderForm,
     renderContent,
     checkNewPosts,
+    renderWindow,
+    changeDuringViewing
   };
 };

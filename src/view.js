@@ -18,26 +18,6 @@ const renderTemplate = (title) => {
 export default (elements, i18n, state) => {
 
   const { t } = i18n;
-  const watchedState = onChange(state, (path, value) => {
-
-    if (path === 'feeds'){
-      elements.form.querySelector('input').classList.remove('is-invalid');
-      elements.feedbackContainer.classList.add('text-success');
-      elements.feedbackContainer.classList.remove('text-danger');
-      elements.feedbackContainer.textContent = t('sucсess.successMessage');
-      elements.form.reset();
-      elements.form.querySelector('input').focus();
-    }else if (path === 'loadingProcess.error'){
-      elements.form.querySelector('input').classList.add('is-invalid');
-      elements.feedbackContainer.classList.add('text-danger');
-      elements.feedbackContainer.classList.remove('text-success');
-      let strOfErrors = '';
-      watchedState.loadingProcess.error.forEach((error) => {
-        strOfErrors += `${error} `
-      });
-      elements.feedbackContainer.textContent = `${strOfErrors.trim()}`
-    }
-  });
 
   const renderForm = () => {
     const { mainContainer, form } = elements;
@@ -75,16 +55,12 @@ export default (elements, i18n, state) => {
      }
   }
 
-
-
   const renderPosts = (elements, postsArray) => {
     if(elements.postsContainer.querySelector('.card') === null){
       const firstPostsEl = renderTemplate(`${i18n.t('interface.postsTitle')}`);
       elements.postsContainer.append(firstPostsEl);
     }
     const arrayOfPostsEl = postsArray.map((post) => {
-      post.id = _.uniqueId(),
-      watchedState.posts.push(post)
       const liPostElem = document.createElement('li');
       liPostElem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
       const aPostElem = document.createElement('a');
@@ -109,7 +85,7 @@ export default (elements, i18n, state) => {
     arrayOfPostsEl.forEach(postElement => newPostsContainer.append(postElement));
   }
 
-  const renderContent = (elements, parsedData) => {
+  const renderContent = (elements, feed) => {
     if(elements.feedsContainer.querySelector('.card') === null){
       const firstFeedsEl = renderTemplate(`${i18n.t('interface.feedsTitle')}`);
       elements.feedsContainer.append(firstFeedsEl);
@@ -118,13 +94,12 @@ export default (elements, i18n, state) => {
     liFeedElem.classList.add('list-group-item', 'border-0', 'border-end-0');
     const hThreeElem = document.createElement('h3');
     hThreeElem.classList.add('h6', 'm-0');
-    hThreeElem.textContent = `${parsedData.feedTitle}`;
+    hThreeElem.textContent = `${feed.feedTitle}`;
     const pElem = document.createElement('p');
     pElem.classList.add('m-0', 'small', 'text-black-50');
-    pElem.textContent =  `${parsedData.feedDescription}`;
+    pElem.textContent =  `${feed.feedDescription}`;
     liFeedElem.append(hThreeElem, pElem);
     elements.feedsContainer.querySelector('ul').prepend(liFeedElem);
-    renderPosts(elements, parsedData.postsArray);
   }
 
   const changeDuringViewing = (element) => {
@@ -159,10 +134,37 @@ export default (elements, i18n, state) => {
     watchedState.uiState.status = 'window';
   }
 
+  const watchedState = onChange(state, (path, value) => {
+    if (path === 'feeds'){
+      elements.form.querySelector('input').classList.remove('is-invalid');
+      elements.feedbackContainer.classList.add('text-success');
+      elements.feedbackContainer.classList.remove('text-danger');
+      elements.feedbackContainer.textContent = t('sucсess.successMessage');
+      elements.form.reset();
+      elements.form.querySelector('input').focus();
+
+    }else if (path === 'loadingProcess.error'){
+      elements.form.querySelector('input').classList.add('is-invalid');
+      elements.feedbackContainer.classList.add('text-danger');
+      elements.feedbackContainer.classList.remove('text-success');
+      let strOfErrors = '';
+      watchedState.loadingProcess.error.forEach((error) => {
+        strOfErrors += `${error} `
+      });
+      elements.feedbackContainer.textContent = `${strOfErrors.trim()}`
+    } else if (path = 'loadingProcess.status'){
+      if (value === 'sucessful') {
+        state.feeds.forEach((feed) => renderContent(elements, feed));
+        renderPosts(elements, state.posts);
+
+      }
+
+    }
+  });
+
   return {
     watchedState,
     renderForm,
-    renderContent,
     checkNewPosts,
     renderWindow,
     changeDuringViewing

@@ -18,6 +18,8 @@ export default (data) => {
         description: item.querySelector('description').textContent,
     }));
 
+    const feed = {feedTitle: feedTitle, feedDescription: feedDescription}
+
     
-    return {feedTitle, feedDescription, postsArray};
+    return {feed, postsArray};
 };

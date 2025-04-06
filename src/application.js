@@ -25,7 +25,7 @@ const validation = (url, watchedState) => {
 }
 
  
-const checkAndLoadContent = (url) => {
+const getParsedContent = (url) => {
     const newUrl = getProxyUrl(url);
     return axios.get(newUrl)
     .then(response => {
@@ -76,7 +76,7 @@ export default () => {
   const state = {
     loadingProcess: {
       error: [],
-      status: 'notLoad' //еще loading, sucess, fail
+      status: 'notLoad'
     },
     uiState: {
       seenPosts: [],
@@ -85,24 +85,42 @@ export default () => {
     feeds: [],
     posts: [],
   };
+
+  const errorНandler = (error, i18n, watchedState) => {
+    let errorMessageKey = 'errors.unknown';
+    if (error.message === i18n.t('errors.noRss')) {
+      errorMessageKey = 'errors.noRss';
+    } if (error.code === 'ERR_NETWORK') {
+      errorMessageKey = 'errors.network';
+    } if (error instanceof yup.ValidationError) {
+      switch(error.message) {
+        case `${i18n.t('errors.notUrl')}`:
+          errorMessageKey = 'errors.notUrl'
+          break;
+        case `${i18n.t('errors.exists')}`:
+          errorMessageKey = 'errors.exists'
+          break;
+        case `${i18n.t('errors.required')}`:
+          errorMessageKey = 'errors.required'
+          break;
+        default:
+          errorMessageKey = 'errors.unknown'
+      }
+    }
+    watchedState.loadingProcess.status = 'failed'
+    watchedState.loadingProcess.error = [i18next.t(errorMessageKey)];
+  }
  
   
   const checker = (watchedState, checkNewPosts, timeout = 5000) => {
     const check = () => {
       const promises = watchedState.feeds.map((feed) => {
-        checkAndLoadContent(feed)
+        getParsedContent(feed.url)
         .then((parsedData) => {
           checkNewPosts(parsedData.postsArray, elements)
         })
         .catch((error) => {
-          let errorMessageKey = ''; 
-          if (error.message === i18n.t('errors.noRss')) {
-            errorMessageKey = 'errors.noRss';
-          } else if (error.message === 'Network response was not ok') {
-            errorMessageKey = 'errors.network';
-          } else {
-            errorMessageKey = 'errors.unknown';
-          }
+          errorНandler(error, i18n, watchedState)
         });
       })
       Promise.all(promises)
@@ -114,8 +132,7 @@ export default () => {
     
   }
 
-
-  const linkProcessing = (i18n, watchedState, renderContent, renderWindow, changeDuringViewing) => (e) => {
+  const linkProcessing = (i18n, watchedState, renderWindow, changeDuringViewing) => (e) => {
     e.preventDefault();
     watchedState.loadingProcess.status = 'loading';
     const form = e.target;
@@ -123,23 +140,27 @@ export default () => {
     const originalFeedName = formData.get('url');
     validation(originalFeedName, watchedState)
     .then(() => {
-      checkAndLoadContent(originalFeedName)
+      getParsedContent(originalFeedName)
       .then((parsedData) => {
-        renderContent(elements, parsedData);
-        watchedState.feeds.push({url: originalFeedName, id: _.uniqueId()} );
+        parsedData.postsArray.forEach((item) => {
+          item.id = _.uniqueId();
+          watchedState.posts.push(item);
+        });
+        parsedData.feed.id = _.uniqueId();
+        parsedData.feed.url = originalFeedName;
+        watchedState.feeds.push(parsedData.feed);
         watchedState.loadingProcess.status = 'sucessful';
 
-        const linkElements = elements.postsContainer.querySelectorAll("[target='_blank']");
+        /*const linkElements = elements.postsContainer.querySelectorAll("[target='_blank']");
         Array.from(linkElements).forEach((elem) => {
           elem.addEventListener('click', () => {
             changeDuringViewing(elem)
           })
-        })
+        })*/
 
-        const previewButtons = elements.postsContainer.querySelectorAll("[data-bs-target='#modal']");
-        Array.from(previewButtons).forEach((button) => {
-          button.addEventListener('click', () => {
-            //parsed data есть
+        //const previewButtons = elements.postsContainer.querySelectorAll("[data-bs-target='#modal']");
+        //Array.from(previewButtons).forEach((button) => {
+          /*button.addEventListener('click', () => {
             renderWindow(button);
             const modalWindow = document.getElementById('modal');
             const followButton = modalWindow.querySelector('.btn-primary')
@@ -158,44 +179,24 @@ export default () => {
               watchedState.uiState.status = 'typical';
             });
 
-          })
-        })
+          })*/
+        //})
       })
       .catch((error) => {
-        let errorMessageKey = ''; 
-        if (error.message === i18n.t('errors.noRss')) {
-          errorMessageKey = 'errors.noRss';
-        } else if (error.message === 'Network response was not ok') {
-          errorMessageKey = 'errors.network';
-        } else {
-          errorMessageKey = 'errors.unknown';
-        }
-        watchedState.loadingProcess.error = [i18next.t(errorMessageKey)];
-        watchedState.loadingProcess.status = 'failed';
+        errorНandler(error, i18n, watchedState)
       });
     })
     .catch((error) => {
-      watchedState.loadingProcess.status = 'failed'
-      let errorMessageKey = 'errors.unknownError'; 
-      if (error instanceof yup.ValidationError) {
-        errorMessageKey = error.message === i18n.t('errors.notUrl') ? 'errors.notUrl' : 'errors.exists'; 
-      } else if (error.message === 'Network response was not ok') {
-        errorMessageKey = 'errors.network';
-      } else {
-        errorMessageKey = 'errors.unknown';
-      }
-      watchedState.loadingProcess.error = [i18next.t(errorMessageKey)];
-      watchedState.loadingProcess.status = 'failed';
+      errorНandler(error, i18n, watchedState)
     });
   };
 
 
   initI18n()
     .then((i18nInstance) => {
-      const { watchedState, renderForm, renderContent, checkNewPosts, renderWindow, changeDuringViewing} = watch(elements, i18nInstance, state);
+      const { watchedState, renderForm,  checkNewPosts, renderWindow, changeDuringViewing} = watch(elements, i18nInstance, state);
       renderForm();
       checker(watchedState, checkNewPosts);
-      elements.form.addEventListener('submit', linkProcessing(i18nInstance, watchedState, renderContent, renderWindow, changeDuringViewing));
-
+      elements.form.addEventListener('submit', linkProcessing(i18nInstance, watchedState, renderWindow, changeDuringViewing));
     });
 };

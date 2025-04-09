@@ -24,18 +24,13 @@ const validation = (url, watchedState) => {
   return schema.validate(url, { abortEarly: false })
 }
 
- 
 const getParsedContent = (url) => {
-    const newUrl = getProxyUrl(url);
-    return axios.get(newUrl)
+  const newUrl = getProxyUrl(url);
+  return axios.get(newUrl)
     .then(response => {
       const parsedData = dataParser(response.data.contents);
       return parsedData;
- 
-    })
-    .catch((error) => {
-      throw error
-  })
+    });
 };
 
 export default () => {
@@ -71,8 +66,9 @@ export default () => {
     feedsContainer: document.querySelector('.feeds'),
     postsContainer: document.querySelector('.posts'),
     feedbackContainer: document.querySelector('.feedback'),
+    modalWindow: document.getElementById('modal'),
   };
- 
+  
   const state = {
     loadingProcess: {
       error: [],
@@ -81,12 +77,13 @@ export default () => {
     uiState: {
       seenPosts: [],
       status: 'typical',
+      viewedButtonId: '',
     },
     feeds: [],
     posts: [],
   };
 
-  const errorНandler = (error, i18n, watchedState) => {
+  const errorHandler = (error, i18n, watchedState) => {
     let errorMessageKey = 'errors.unknown';
     if (error.message === i18n.t('errors.noRss')) {
       errorMessageKey = 'errors.noRss';
@@ -110,7 +107,7 @@ export default () => {
     watchedState.loadingProcess.status = 'failed'
     watchedState.loadingProcess.error = [i18next.t(errorMessageKey)];
   }
- 
+
   
   const checker = (watchedState, checkNewPosts, timeout = 5000) => {
     const check = () => {
@@ -120,7 +117,7 @@ export default () => {
           checkNewPosts(parsedData.postsArray, elements)
         })
         .catch((error) => {
-          errorНandler(error, i18n, watchedState)
+          errorHandler(error, i18n, watchedState)
         });
       })
       Promise.all(promises)
@@ -132,7 +129,11 @@ export default () => {
     
   }
 
-  const linkProcessing = (i18n, watchedState, renderWindow, changeDuringViewing) => (e) => {
+  const buttonsClick = (watchedState) => () => {
+    watchedState.uiState.status = 'typical';
+  }
+
+  const linkProcessing = (i18n, watchedState) => (e) => {
     e.preventDefault();
     watchedState.loadingProcess.status = 'loading';
     const form = e.target;
@@ -151,52 +152,42 @@ export default () => {
         watchedState.feeds.push(parsedData.feed);
         watchedState.loadingProcess.status = 'sucessful';
 
-        /*const linkElements = elements.postsContainer.querySelectorAll("[target='_blank']");
+        const linkElements = elements.postsContainer.querySelectorAll("[target='_blank']");
         Array.from(linkElements).forEach((elem) => {
           elem.addEventListener('click', () => {
-            changeDuringViewing(elem)
+            if (!watchedState.uiState.seenPosts.includes(elem.getAttribute('data-id'))) {
+              watchedState.uiState.seenPosts.push(elem.getAttribute('data-id'))
+            }
           })
-        })*/
+        });
 
-        //const previewButtons = elements.postsContainer.querySelectorAll("[data-bs-target='#modal']");
-        //Array.from(previewButtons).forEach((button) => {
-          /*button.addEventListener('click', () => {
-            renderWindow(button);
-            const modalWindow = document.getElementById('modal');
-            const followButton = modalWindow.querySelector('.btn-primary')
-            followButton.addEventListener('click', () => {
-              const aPostElem = elements.postsContainer.querySelector(`[data-id="${button.getAttribute('data-id')}"]`);
-              window.open(`${aPostElem.getAttribute('href')}`, '_blank');
-            })
+        const previewButtons = elements.postsContainer.querySelectorAll("[data-bs-target='#modal']");
+        Array.from(previewButtons).forEach((button) => {
+          button.addEventListener('click', () => {
+            watchedState.uiState.viewedButtonId = button.getAttribute('data-id')
+            watchedState.uiState.status = 'window';
+          });
+        });
 
-            const closeButton = modalWindow.querySelector('.btn-secondary')
-            closeButton.addEventListener('click', () => {
-              watchedState.uiState.status = 'typical';
-            })
-
-            const secondCloseButton = modalWindow.querySelector('.btn-close[data-bs-dismiss="modal"]')
-            secondCloseButton.addEventListener('click', () => {
-              watchedState.uiState.status = 'typical';
-            });
-
-          })*/
-        //})
       })
       .catch((error) => {
-        errorНandler(error, i18n, watchedState)
+        errorHandler(error, i18n, watchedState)
       });
     })
     .catch((error) => {
-      errorНandler(error, i18n, watchedState)
+      errorHandler(error, i18n, watchedState)
     });
   };
 
-
   initI18n()
     .then((i18nInstance) => {
-      const { watchedState, renderForm,  checkNewPosts, renderWindow, changeDuringViewing} = watch(elements, i18nInstance, state);
+      const { watchedState, renderForm,  checkNewPosts } = watch(elements, i18nInstance, state);
       renderForm();
       checker(watchedState, checkNewPosts);
-      elements.form.addEventListener('submit', linkProcessing(i18nInstance, watchedState, renderWindow, changeDuringViewing));
+      elements.form.addEventListener('submit', linkProcessing(i18nInstance, watchedState));
+      const closeButton = elements.modalWindow.querySelector('.btn-secondary');
+      const secondCloseButton = elements.modalWindow.querySelector('.btn-close[data-bs-dismiss="modal"]');
+      closeButton.addEventListener('click', buttonsClick(watchedState));
+      secondCloseButton.addEventListener('click', buttonsClick(watchedState));
     });
 };

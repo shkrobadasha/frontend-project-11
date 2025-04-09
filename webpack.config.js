@@ -6,18 +6,18 @@ module.exports = (env) => {
   return {
     resolve: {
       fallback: {
-        "querystring": require.resolve("querystring-es3"), // Добавлено
-        "zlib": require.resolve("browserify-zlib"), // Добавлено
-        "util": require.resolve("util/"), // Добавлено
-        "crypto": require.resolve("crypto-browserify"), // Добавлено
-        "stream": require.resolve("stream-browserify"), // Добавлено
-        "path": require.resolve("path-browserify"), // Добавлено
-        "vm": require.resolve("vm-browserify"), // Добавлено
-        "assert": require.resolve("assert"), // Добавлено
-        "url": require.resolve("url/"), // Добавлено
-        "https": require.resolve("https-browserify"), // Добавлено
-        "http": require.resolve("stream-http"), // Добавлено
-        "buffer": require.resolve("buffer/"), // Добавлено
+        "querystring": require.resolve("querystring-es3"), 
+        "zlib": require.resolve("browserify-zlib"), 
+        "util": require.resolve("util/"), 
+        "crypto": require.resolve("crypto-browserify"), 
+        "stream": require.resolve("stream-browserify"), 
+        "path": require.resolve("path-browserify"), 
+        "vm": require.resolve("vm-browserify"),
+        "assert": require.resolve("assert"), 
+        "url": require.resolve("url/"), 
+        "https": require.resolve("https-browserify"), 
+        "http": require.resolve("stream-http"), 
+        "buffer": require.resolve("buffer/"), 
       },
     },
     mode: env.mode ?? 'development',
@@ -33,7 +33,7 @@ module.exports = (env) => {
     plugins: [
       new HtmlWebpackPlugin({ template: path.resolve(__dirname, 'index.html') }),
       new webpack.ProgressPlugin(),
-      new webpack.ProvidePlugin({  // Добавлено
+      new webpack.ProvidePlugin({  
         Buffer: ['buffer', 'Buffer'],
       }),
     ],

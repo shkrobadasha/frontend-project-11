@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import onChange from 'on-change';
 
 const renderTemplate = (title) => {
@@ -46,20 +47,22 @@ export default (elements, i18n, state) => {
     mainContainer.insertBefore(exampleText, textDanger);
   };
 
-  const checkNewPosts = (postsArray, elements) => {
+  const synchronizePosts = (postsArray) => {
       const currentPosts = postsArray.map((post) => post.name);
       const existsPosts = watchedState.posts.map((post) => post.name);
-      if (JSON.stringify(currentPosts) !== JSON.stringify(existsPosts)) {
-        const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name))
-        renderPosts(elements, differArray)
+      if (_.isEqual(currentPosts, existsPosts)) {
+        const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name));
+        watchedState.posts = [...differArray, ...watchedState.posts];
      }
   }
 
   const renderPosts = (elements, postsArray) => {
+  
     if(elements.postsContainer.querySelector('.card') === null){
       const firstPostsEl = renderTemplate(`${i18n.t('interface.postsTitle')}`);
       elements.postsContainer.append(firstPostsEl);
     }
+    const newPostsContainer = elements.postsContainer.querySelector('ul');
     const arrayOfPostsEl = postsArray.map((post) => {
       const liPostElem = document.createElement('li');
       liPostElem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
@@ -80,7 +83,7 @@ export default (elements, i18n, state) => {
       liPostElem.append(aPostElem, postButton);        
       return liPostElem
     });
-    const newPostsContainer = elements.postsContainer.querySelector('ul');
+    
     arrayOfPostsEl.forEach(postElement => newPostsContainer.append(postElement));
   }
 
@@ -102,10 +105,9 @@ export default (elements, i18n, state) => {
   }
 
   const renderWindow = (currentId) => {
-    //const currentId = button.getAttribute('data-id');
    const aPostElem = elements.postsContainer.querySelector(`[data-id="${currentId}"]`);
-    aPostElem.classList.remove('fw-bold');
-    aPostElem.classList.add('fw-normal', 'link-secondary');
+    //aPostElem.classList.remove('fw-bold');
+    //aPostElem.classList.add('fw-normal', 'link-secondary');
     const modalWindow = document.getElementById('modal');
     modalWindow.querySelector('.modal-title').textContent = `${aPostElem.textContent}`;
     const pElem = document.createElement('p');
@@ -117,9 +119,7 @@ export default (elements, i18n, state) => {
     closeButton.textContent = `${i18n.t('interface.closeButton')}`;
     const followButton = elements.modalWindow.querySelector('.btn-primary');
     followButton.textContent = `${i18n.t('interface.followButton')}`;
-    watchedState.uiState.seenPosts.push(`${currentId}`);
   };
-
 
   const watchedState = onChange(state, (path, value) => {
     if (path === 'feeds'){
@@ -136,7 +136,7 @@ export default (elements, i18n, state) => {
       elements.feedbackContainer.classList.remove('text-success');
       let strOfErrors = '';
       watchedState.loadingProcess.error.forEach((error) => {
-        strOfErrors += `${error} `
+        strOfErrors += `${i18n.t(error)} `
       });
       elements.feedbackContainer.textContent = `${strOfErrors.trim()}`
     } else if (path === 'loadingProcess.status'){
@@ -155,20 +155,16 @@ export default (elements, i18n, state) => {
         value.forEach(postId => addViewedClass(postId));
     } else if (path === 'uiState.status') {
       if (value === 'window'){
-        const followButton = elements.modalWindow.querySelector('.btn-primary');
-        followButton.addEventListener('click', () => {
-          const aPostElem = elements.postsContainer.querySelector(`[data-id="${watchedState.uiState.viewedButtonId}"]`);
-          window.open(`${aPostElem.getAttribute('href')}`, '_blank');
-        });
         renderWindow(watchedState.uiState.viewedButtonId);
       }
-
-    } 
+    } else if (path === 'posts') {
+      renderPosts(elements, watchedState.posts)
+    }
   });
 
   return {
     watchedState,
     renderForm,
-    checkNewPosts,
+    synchronizePosts,
   };
 };

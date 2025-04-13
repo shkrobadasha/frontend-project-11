@@ -20,7 +20,6 @@ const getFeedsUrl = (arrayOfFeeds) => {
 
 const validation = (url, watchedState) => {
   const schema = yup.string().url().trim().required().notOneOf(getFeedsUrl(watchedState.feeds));
-  watchedState.loadingProcess.error = [];
   return schema.validate(url, { abortEarly: false })
 }
 
@@ -43,12 +42,11 @@ export default () => {
     .then(() => {
       yup.setLocale({
         mixed: {
-          notOneOf: () => i18next.t('errors.exists'),
-          required: () => i18next.t('errors.required'),
-
+         notOneOf: () => 'errors.exists',
+         required: () => 'errors.required',
         },
         string: {
-          url: () => i18next.t('errors.notUrl'),
+          url: () => 'errors.notUrl',
         },
       });
       return i18next;
@@ -91,13 +89,13 @@ export default () => {
       errorMessageKey = 'errors.network';
     } if (error instanceof yup.ValidationError) {
       switch(error.message) {
-        case `${i18n.t('errors.notUrl')}`:
+        case 'errors.notUrl':
           errorMessageKey = 'errors.notUrl'
           break;
-        case `${i18n.t('errors.exists')}`:
+        case 'errors.exists':
           errorMessageKey = 'errors.exists'
           break;
-        case `${i18n.t('errors.required')}`:
+        case 'errors.required':
           errorMessageKey = 'errors.required'
           break;
         default:
@@ -105,16 +103,17 @@ export default () => {
       }
     }
     watchedState.loadingProcess.status = 'failed'
-    watchedState.loadingProcess.error = [i18next.t(errorMessageKey)];
+    watchedState.loadingProcess.error = [errorMessageKey];
   }
 
   
-  const checker = (watchedState, checkNewPosts, timeout = 5000) => {
+  const checker = (watchedState, synchronizePosts, timeout = 5000) => {
     const check = () => {
+      console.log(watchedState.uiState.seenPosts)
       const promises = watchedState.feeds.map((feed) => {
         getParsedContent(feed.url)
         .then((parsedData) => {
-          checkNewPosts(parsedData.postsArray, elements)
+          synchronizePosts(parsedData.postsArray)
         })
         .catch((error) => {
           errorHandler(error, i18n, watchedState)
@@ -143,31 +142,15 @@ export default () => {
     .then(() => {
       getParsedContent(originalFeedName)
       .then((parsedData) => {
-        parsedData.postsArray.forEach((item) => {
+        const newPostsArray = parsedData.postsArray.map((item) => {
           item.id = _.uniqueId();
-          watchedState.posts.push(item);
+          return item
         });
+        watchedState.posts = [...newPostsArray, ...watchedState.posts];
         parsedData.feed.id = _.uniqueId();
         parsedData.feed.url = originalFeedName;
         watchedState.feeds.push(parsedData.feed);
         watchedState.loadingProcess.status = 'sucessful';
-
-        const linkElements = elements.postsContainer.querySelectorAll("[target='_blank']");
-        Array.from(linkElements).forEach((elem) => {
-          elem.addEventListener('click', () => {
-            if (!watchedState.uiState.seenPosts.includes(elem.getAttribute('data-id'))) {
-              watchedState.uiState.seenPosts.push(elem.getAttribute('data-id'))
-            }
-          })
-        });
-
-        const previewButtons = elements.postsContainer.querySelectorAll("[data-bs-target='#modal']");
-        Array.from(previewButtons).forEach((button) => {
-          button.addEventListener('click', () => {
-            watchedState.uiState.viewedButtonId = button.getAttribute('data-id')
-            watchedState.uiState.status = 'window';
-          });
-        });
 
       })
       .catch((error) => {
@@ -179,12 +162,40 @@ export default () => {
     });
   };
 
+  //все обработчики перенесли сюда, осталось разобраться с добавлением в прочитанные посты и событиями в рендере
   initI18n()
     .then((i18nInstance) => {
-      const { watchedState, renderForm,  checkNewPosts } = watch(elements, i18nInstance, state);
+      const { watchedState, renderForm,  synchronizePosts } = watch(elements, i18nInstance, state);
       renderForm();
-      checker(watchedState, checkNewPosts);
+      checker(watchedState, synchronizePosts);
       elements.form.addEventListener('submit', linkProcessing(i18nInstance, watchedState));
+
+      elements.postsContainer.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.tagName === 'A' && target.closest('li')) {
+          const postId = target.getAttribute('data-id');
+          if (postId && !watchedState.uiState.seenPosts.includes(postId)) {
+            watchedState.uiState.seenPosts.push(postId);
+          }
+        }
+        if (target.tagName === 'BUTTON' && target.getAttribute('data-bs-target') === '#modal') {
+          const currentId = target.getAttribute('data-id');
+          watchedState.uiState.viewedButtonId = currentId;
+          if (currentId && !watchedState.uiState.seenPosts.includes(currentId)) {
+            watchedState.uiState.seenPosts.push(currentId);
+          }
+          watchedState.uiState.status = 'window';
+        }
+      });
+
+      elements.modalWindow.addEventListener('click', (e) => {
+        if (e.target.classList.contains('btn-primary')) {
+          const postId = watchedState.uiState.viewedButtonId;
+          const aPostElem = elements.postsContainer.querySelector(`[data-id="${postId}"]`);
+          window.open(`${aPostElem.getAttribute('href')}`, '_blank'); 
+        }
+      });
+
       const closeButton = elements.modalWindow.querySelector('.btn-secondary');
       const secondCloseButton = elements.modalWindow.querySelector('.btn-close[data-bs-dismiss="modal"]');
       closeButton.addEventListener('click', buttonsClick(watchedState));

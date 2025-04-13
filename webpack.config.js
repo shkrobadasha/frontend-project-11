@@ -45,11 +45,11 @@ module.exports = (env) => {
       rules: [
         {
           test: /\.css$/,
-          use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'], // ИЗМЕНЕНО
+          use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'], 
         },
         {
           test: /\.scss$/,
-          use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader', 'postcss-loader'], // ИЗМЕНЕНО
+          use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader', 'postcss-loader'],
         },
       ]
     },

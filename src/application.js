@@ -109,7 +109,6 @@ export default () => {
   
   const checker = (watchedState, synchronizePosts, timeout = 5000) => {
     const check = () => {
-      console.log(watchedState.uiState.seenPosts)
       const promises = watchedState.feeds.map((feed) => {
         getParsedContent(feed.url)
         .then((parsedData) => {

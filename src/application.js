@@ -76,6 +76,7 @@ export default () => {
       seenPosts: [],
       status: 'typical',
       viewedButtonId: '',
+      followPostId: '',
     },
     feeds: [],
     posts: [],
@@ -102,7 +103,6 @@ export default () => {
           errorMessageKey = 'errors.unknown'
       }
     }
-    watchedState.loadingProcess.status = 'failed'
     watchedState.loadingProcess.error = [errorMessageKey];
   }
 
@@ -152,16 +152,14 @@ export default () => {
         watchedState.loadingProcess.status = 'sucessful';
 
       })
-      .catch((error) => {
-        errorHandler(error, i18n, watchedState)
-      });
     })
     .catch((error) => {
       errorHandler(error, i18n, watchedState)
+      watchedState.loadingProcess.status = 'failed'
     });
   };
 
-  //все обработчики перенесли сюда, осталось разобраться с добавлением в прочитанные посты и событиями в рендере
+
   initI18n()
     .then((i18nInstance) => {
       const { watchedState, renderForm,  synchronizePosts } = watch(elements, i18nInstance, state);
@@ -190,8 +188,7 @@ export default () => {
       elements.modalWindow.addEventListener('click', (e) => {
         if (e.target.classList.contains('btn-primary')) {
           const postId = watchedState.uiState.viewedButtonId;
-          const aPostElem = elements.postsContainer.querySelector(`[data-id="${postId}"]`);
-          window.open(`${aPostElem.getAttribute('href')}`, '_blank'); 
+          watchedState.uiState.followPostId = postId;
         }
       });
 

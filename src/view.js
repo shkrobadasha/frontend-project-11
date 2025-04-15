@@ -62,6 +62,7 @@ export default (elements, i18n, state) => {
       const firstPostsEl = renderTemplate(`${i18n.t('interface.postsTitle')}`);
       elements.postsContainer.append(firstPostsEl);
     }
+
     const newPostsContainer = elements.postsContainer.querySelector('ul');
     const arrayOfPostsEl = postsArray.map((post) => {
       const liPostElem = document.createElement('li');
@@ -83,7 +84,7 @@ export default (elements, i18n, state) => {
       liPostElem.append(aPostElem, postButton);        
       return liPostElem
     });
-    
+    newPostsContainer.innerHTML = ''
     arrayOfPostsEl.forEach(postElement => newPostsContainer.append(postElement));
   }
 
@@ -106,8 +107,6 @@ export default (elements, i18n, state) => {
 
   const renderWindow = (currentId) => {
    const aPostElem = elements.postsContainer.querySelector(`[data-id="${currentId}"]`);
-    //aPostElem.classList.remove('fw-bold');
-    //aPostElem.classList.add('fw-normal', 'link-secondary');
     const modalWindow = document.getElementById('modal');
     modalWindow.querySelector('.modal-title').textContent = `${aPostElem.textContent}`;
     const pElem = document.createElement('p');
@@ -120,6 +119,11 @@ export default (elements, i18n, state) => {
     const followButton = elements.modalWindow.querySelector('.btn-primary');
     followButton.textContent = `${i18n.t('interface.followButton')}`;
   };
+
+  const openFollowWindow = (elemId) => {
+    const aPostElem = elements.postsContainer.querySelector(`[data-id="${elemId}"]`);
+    window.open(`${aPostElem.getAttribute('href')}`, '_blank'); 
+  }
 
   const watchedState = onChange(state, (path, value) => {
     if (path === 'feeds'){
@@ -159,6 +163,8 @@ export default (elements, i18n, state) => {
       }
     } else if (path === 'posts') {
       renderPosts(elements, watchedState.posts)
+    } else if (path === 'uiState.followPostId') {
+      openFollowWindow(watchedState.uiState.followPostId);
     }
   });
 

@@ -138,25 +138,22 @@ export default () => {
     const formData = new FormData(form);
     const originalFeedName = formData.get('url');
     validation(originalFeedName, watchedState)
-    .then(() => {
-      getParsedContent(originalFeedName)
+      .then(() => getParsedContent(originalFeedName))
       .then((parsedData) => {
         const newPostsArray = parsedData.postsArray.map((item) => {
           item.id = _.uniqueId();
           return item
         });
-        watchedState.posts = [...newPostsArray, ...watchedState.posts];
         parsedData.feed.id = _.uniqueId();
         parsedData.feed.url = originalFeedName;
         watchedState.feeds.push(parsedData.feed);
-        watchedState.loadingProcess.status = 'sucessful';
-
+        watchedState.posts = [...newPostsArray, ...watchedState.posts];
+        watchedState.loadingProcess.status = 'successful';
       })
-    })
-    .catch((error) => {
-      errorHandler(error, i18n, watchedState)
-      watchedState.loadingProcess.status = 'failed'
-    });
+      .catch((error) => {
+        errorHandler(error, i18n, watchedState)
+        watchedState.loadingProcess.status = 'failed'
+      })
   };
 
 

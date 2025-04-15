@@ -6,6 +6,7 @@
   "scripts": {
     "build:dev": "webpack --env mode=development -- --stats-error-details",
     "build:prod": "webpack --env node=production -- ",
+    "build": "npm run build:prod",
     "lint": "eslint ."
   },
   "author": "",

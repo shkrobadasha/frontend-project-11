@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import onChange from 'on-change';
 
-const renderTemplate = (title) => {
+const renderTemplate = title => {
   const firstDiv = document.createElement('div');
   firstDiv.classList.add('card', 'border-0');
   const secondDivTitle = document.createElement('div');
@@ -13,11 +13,10 @@ const renderTemplate = (title) => {
   const ulElem = document.createElement('ul');
   ulElem.classList.add('list-group', 'border-0', 'rounded-00');
   firstDiv.append(secondDivTitle, ulElem);
-  return firstDiv
-}
+  return firstDiv;
+};
 
 export default (elements, i18n, state) => {
-
   const { t } = i18n;
 
   const renderForm = () => {
@@ -47,22 +46,25 @@ export default (elements, i18n, state) => {
     mainContainer.insertBefore(exampleText, textDanger);
   };
 
-  const synchronizePosts = (postsArray) => {
-      const currentPosts = postsArray.map((post) => post.name);
-      const existsPosts = watchedState.posts.map((post) => post.name);
-      if (_.isEqual(currentPosts, existsPosts)) {
-        const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name));
-        watchedState.posts = [...differArray, ...watchedState.posts];
-     }
-  }
+  const synchronizePosts = postsArray => {
+    const currentPosts = postsArray.map(post => post.name);
+    // eslint-disable-next-line no-use-before-define
+    const existsPosts = watchedState.posts.map(post => post.name);
+    if (_.isEqual(currentPosts, existsPosts)) {
+      const differArray = postsArray.filter(elem => !existsPosts.includes(elem.name));
+      // eslint-disable-next-line no-use-before-define
+      watchedState.posts = [...differArray, ...watchedState.posts];
+    }
+  };
 
+  // eslint-disable-next-line no-shadow
   const renderPosts = (elements, postsArray) => {
-    if(elements.postsContainer.querySelector('.card') === null){
+    if (elements.postsContainer.querySelector('.card') === null) {
       const firstPostsEl = renderTemplate(`${i18n.t('interface.postsTitle')}`);
       elements.postsContainer.append(firstPostsEl);
     }
     const newPostsContainer = elements.postsContainer.querySelector('ul');
-    const arrayOfPostsEl = postsArray.map((post) => {
+    const arrayOfPostsEl = postsArray.map(post => {
       const liPostElem = document.createElement('li');
       liPostElem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
       const aPostElem = document.createElement('a');
@@ -79,20 +81,21 @@ export default (elements, i18n, state) => {
       postButton.setAttribute('data-bs-toggle', 'modal');
       postButton.setAttribute('data-bs-target', '#modal');
       postButton.textContent = `${i18n.t('interface.postsPreview')}`;
-      liPostElem.append(aPostElem, postButton);        
-      return liPostElem
+      liPostElem.append(aPostElem, postButton);
+      return liPostElem;
     });
-    newPostsContainer.innerHTML = ''
+    newPostsContainer.innerHTML = '';
     arrayOfPostsEl.forEach(postElement => newPostsContainer.append(postElement));
-  }
+  };
 
+  // eslint-disable-next-line no-shadow
   const renderFeeds = (elements, feedsArray) => {
-    if(elements.feedsContainer.querySelector('.card') === null){
+    if (elements.feedsContainer.querySelector('.card') === null) {
       const firstFeedsEl = renderTemplate(`${i18n.t('interface.feedsTitle')}`);
       elements.feedsContainer.append(firstFeedsEl);
     }
     const newFeedsContainer = elements.feedsContainer.querySelector('ul');
-    const arrayOfFeedsEl = feedsArray.map((feed) => {
+    const arrayOfFeedsEl = feedsArray.map(feed => {
       const liFeedElem = document.createElement('li');
       liFeedElem.classList.add('list-group-item', 'border-0', 'border-end-0');
       const hThreeElem = document.createElement('h3');
@@ -100,20 +103,22 @@ export default (elements, i18n, state) => {
       hThreeElem.textContent = `${feed.feedTitle}`;
       const pElem = document.createElement('p');
       pElem.classList.add('m-0', 'small', 'text-black-50');
-      pElem.textContent =  `${feed.feedDescription}`;
+      pElem.textContent = `${feed.feedDescription}`;
       liFeedElem.append(hThreeElem, pElem);
-      return liFeedElem
-    })
-    newFeedsContainer.innerHTML = ''
+      return liFeedElem;
+    });
+    newFeedsContainer.innerHTML = '';
     arrayOfFeedsEl.forEach(feedElement => newFeedsContainer.prepend(feedElement));
-  }
+  };
 
-  const renderWindow = (currentId) => {
-   const aPostElem = elements.postsContainer.querySelector(`[data-id="${currentId}"]`);
+  const renderWindow = currentId => {
+    const aPostElem = elements.postsContainer.querySelector(`[data-id="${currentId}"]`);
+
     const modalWindow = document.getElementById('modal');
     modalWindow.querySelector('.modal-title').textContent = `${aPostElem.textContent}`;
     const pElem = document.createElement('p');
-    const currentDescription = watchedState.posts.filter((elem) => (elem.id === currentId));
+    // eslint-disable-next-line no-use-before-define
+    const currentDescription = watchedState.posts.filter(elem => (elem.id === currentId));
     pElem.textContent = `${currentDescription[0].description}`;
     document.querySelector('.modal-body').innerHTML = '';
     document.querySelector('.modal-body').append(pElem);
@@ -123,13 +128,13 @@ export default (elements, i18n, state) => {
     followButton.textContent = `${i18n.t('interface.followButton')}`;
   };
 
-  const openFollowWindow = (elemId) => {
+  const openFollowWindow = elemId => {
     const aPostElem = elements.postsContainer.querySelector(`[data-id="${elemId}"]`);
-    window.open(`${aPostElem.getAttribute('href')}`, '_blank'); 
-  }
+    window.open(`${aPostElem.getAttribute('href')}`, '_blank');
+  };
 
   const watchedState = onChange(state, (path, value) => {
-    if (path === 'feeds'){
+    if (path === 'feeds') {
       elements.form.querySelector('input').classList.remove('is-invalid');
       elements.feedbackContainer.classList.add('text-success');
       elements.feedbackContainer.classList.remove('text-danger');
@@ -137,35 +142,34 @@ export default (elements, i18n, state) => {
       elements.form.reset();
       elements.form.querySelector('input').focus();
       renderFeeds(elements, state.feeds);
-
-    }else if (path === 'loadingProcess.error'){
+    } else if (path === 'loadingProcess.error') {
       elements.form.querySelector('input').classList.add('is-invalid');
       elements.feedbackContainer.classList.add('text-danger');
       elements.feedbackContainer.classList.remove('text-success');
       let strOfErrors = '';
-      watchedState.loadingProcess.error.forEach((error) => {
-        strOfErrors += `${i18n.t(error)} `
+      watchedState.loadingProcess.error.forEach(error => {
+        strOfErrors += `${i18n.t(error)} `;
       });
-      elements.feedbackContainer.textContent = `${strOfErrors.trim()}`
-    } else if (path === 'loadingProcess.status'){
-        if (value === 'sucessful') {
-          renderPosts(elements, state.posts);
-        } 
+      elements.feedbackContainer.textContent = `${strOfErrors.trim()}`;
+    } else if (path === 'loadingProcess.status') {
+      if (value === 'sucessful') {
+        renderPosts(elements, state.posts);
+      }
     } else if (path === 'uiState.seenPosts') {
-      const addViewedClass = (postId) => {
+      const addViewedClass = postId => {
         const postElement = elements.postsContainer.querySelector(`[data-id="${postId}"]`);
         if (postElement) {
           postElement.classList.remove('fw-bold');
           postElement.classList.add('fw-normal', 'link-secondary');
         }
       };
-        value.forEach(postId => addViewedClass(postId));
+      value.forEach(postId => addViewedClass(postId));
     } else if (path === 'uiState.status') {
-      if (value === 'window'){
+      if (value === 'window') {
         renderWindow(watchedState.uiState.viewedButtonId);
       }
     } else if (path === 'posts') {
-      renderPosts(elements, watchedState.posts)
+      renderPosts(elements, watchedState.posts);
     } else if (path === 'uiState.followPostId') {
       openFollowWindow(watchedState.uiState.followPostId);
     }

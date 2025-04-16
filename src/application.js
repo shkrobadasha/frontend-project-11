@@ -1,28 +1,29 @@
 import i18next from 'i18next';
 import _ from 'lodash';
+import * as yup from 'yup';
+import axios from 'axios';
 import watch from './view.js';
 import dataParser from './parser.js';
 import resources from './locales/index.js';
-import * as yup from 'yup';
-import axios from 'axios';
 
-const getProxyUrl = (link) => {
+const getProxyUrl = link => {
   const proxyUrl = new URL('/get', 'https://allorigins.hexlet.app');
   proxyUrl.searchParams.set('url', link);
   proxyUrl.searchParams.set('disableCache', 'true');
   return proxyUrl.toString();
 };
- 
-const getFeedsUrl = (arrayOfFeeds) => {
-  return arrayOfFeeds.map((item) => item.url);
-};
+
+const getFeedsUrl = arrayOfFeeds => arrayOfFeeds.map(item => item.url);
 
 const validation = (url, watchedState) => {
-  const schema = yup.string().url().trim().required().notOneOf(getFeedsUrl(watchedState.feeds));
-  return schema.validate(url, { abortEarly: false })
-}
+  const schema = yup.string().url()
+    .trim()
+    .required()
+    .notOneOf(getFeedsUrl(watchedState.feeds));
+  return schema.validate(url, { abortEarly: false });
+};
 
-const getParsedContent = (url) => {
+const getParsedContent = url => {
   const newUrl = getProxyUrl(url);
   return axios.get(newUrl)
     .then(response => {
@@ -33,16 +34,15 @@ const getParsedContent = (url) => {
 
 export default () => {
   const i18n = i18next.createInstance();
-  const initI18n  = () => {
-    return i18next.init({
-      lng: 'ru',
-      resources,
-    })
+  const initI18n = () => i18next.init({
+    lng: 'ru',
+    resources,
+  })
     .then(() => {
       yup.setLocale({
         mixed: {
-         notOneOf: () => 'errors.exists',
-         required: () => 'errors.required',
+          notOneOf: () => 'errors.exists',
+          required: () => 'errors.required',
         },
         string: {
           url: () => 'errors.notUrl',
@@ -50,11 +50,10 @@ export default () => {
       });
       return i18next;
     })
-    .catch((error) => {
+    .catch(error => {
       throw error;
     });
-  };
- 
+
   const elements = {
     mainContainer: document.querySelector('.text-white'),
     form: document.querySelector('form'),
@@ -65,11 +64,11 @@ export default () => {
     feedbackContainer: document.querySelector('.feedback'),
     modalWindow: document.getElementById('modal'),
   };
-  
+
   const state = {
     loadingProcess: {
       error: [],
-      status: 'notLoad'
+      status: 'notLoad',
     },
     uiState: {
       seenPosts: [],
@@ -81,6 +80,7 @@ export default () => {
     posts: [],
   };
 
+  // eslint-disable-next-line no-shadow
   const errorHandler = (error, i18n, watchedState) => {
     let errorMessageKey = 'errors.unknown';
     if (error.message === i18n.t('errors.noRss')) {
@@ -88,47 +88,49 @@ export default () => {
     } if (error.code === 'ERR_NETWORK') {
       errorMessageKey = 'errors.network';
     } if (error instanceof yup.ValidationError) {
-      switch(error.message) {
-        case 'errors.notUrl':
-          errorMessageKey = 'errors.notUrl'
-          break;
-        case 'errors.exists':
-          errorMessageKey = 'errors.exists'
-          break;
-        case 'errors.required':
-          errorMessageKey = 'errors.required'
-          break;
-        default:
-          errorMessageKey = 'errors.unknown'
+      switch (error.message) {
+      case 'errors.notUrl':
+        errorMessageKey = 'errors.notUrl';
+        break;
+      case 'errors.exists':
+        errorMessageKey = 'errors.exists';
+        break;
+      case 'errors.required':
+        errorMessageKey = 'errors.required';
+        break;
+      default:
+        errorMessageKey = 'errors.unknown';
       }
     }
     watchedState.loadingProcess.error = [errorMessageKey];
-  }
-  
+  };
+
   const checker = (watchedState, synchronizePosts, timeout = 5000) => {
     const check = () => {
-      const promises = watchedState.feeds.map((feed) => {
+      // eslint-disable-next-line array-callback-return
+      const promises = watchedState.feeds.map(feed => {
         getParsedContent(feed.url)
-        .then((parsedData) => {
-          synchronizePosts(parsedData.postsArray)
-        })
-        .catch((error) => {
-          errorHandler(error, i18n, watchedState)
-        });
-      })
+          .then(parsedData => {
+            synchronizePosts(parsedData.postsArray);
+          })
+          .catch(error => {
+            errorHandler(error, i18n, watchedState);
+          });
+      });
       Promise.all(promises)
-      .finally(() => {
-        setTimeout(check, timeout)
-      })
+        .finally(() => {
+          setTimeout(check, timeout);
+        });
     };
-    check()
-  }
+    check();
+  };
 
-  const buttonsClick = (watchedState) => () => {
+  const buttonsClick = watchedState => () => {
     watchedState.uiState.status = 'typical';
-  }
+  };
 
-  const linkProcessing = (i18n, watchedState) => (e) => {
+  // eslint-disable-next-line no-shadow
+  const linkProcessing = (i18n, watchedState) => e => {
     e.preventDefault();
     watchedState.loadingProcess.status = 'loading';
     const form = e.target;
@@ -136,10 +138,10 @@ export default () => {
     const originalFeedName = formData.get('url');
     validation(originalFeedName, watchedState)
       .then(() => getParsedContent(originalFeedName))
-      .then((parsedData) => {
-        const newPostsArray = parsedData.postsArray.map((item) => {
+      .then(parsedData => {
+        const newPostsArray = parsedData.postsArray.map(item => {
           item.id = _.uniqueId();
-          return item
+          return item;
         });
         parsedData.feed.id = _.uniqueId();
         parsedData.feed.url = originalFeedName;
@@ -147,21 +149,21 @@ export default () => {
         watchedState.posts = [...newPostsArray, ...watchedState.posts];
         watchedState.loadingProcess.status = 'successful';
       })
-      .catch((error) => {
-        errorHandler(error, i18n, watchedState)
-        watchedState.loadingProcess.status = 'failed'
-      })
+      .catch(error => {
+        errorHandler(error, i18n, watchedState);
+        watchedState.loadingProcess.status = 'failed';
+      });
   };
 
   initI18n()
-    .then((i18nInstance) => {
-      const { watchedState, renderForm,  synchronizePosts } = watch(elements, i18nInstance, state);
+    .then(i18nInstance => {
+      const { watchedState, renderForm, synchronizePosts } = watch(elements, i18nInstance, state);
       renderForm();
       checker(watchedState, synchronizePosts);
       elements.form.addEventListener('submit', linkProcessing(i18nInstance, watchedState));
 
-      elements.postsContainer.addEventListener('click', (e) => {
-        const target = e.target;
+      elements.postsContainer.addEventListener('click', e => {
+        const { target } = e;
         if (target.tagName === 'A' && target.closest('li')) {
           const postId = target.getAttribute('data-id');
           if (postId && !watchedState.uiState.seenPosts.includes(postId)) {
@@ -178,7 +180,7 @@ export default () => {
         }
       });
 
-      elements.modalWindow.addEventListener('click', (e) => {
+      elements.modalWindow.addEventListener('click', e => {
         if (e.target.classList.contains('btn-primary')) {
           const postId = watchedState.uiState.viewedButtonId;
           watchedState.uiState.followPostId = postId;

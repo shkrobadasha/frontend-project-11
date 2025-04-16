@@ -6,7 +6,6 @@ import resources from './locales/index.js';
 import * as yup from 'yup';
 import axios from 'axios';
 
-
 const getProxyUrl = (link) => {
   const proxyUrl = new URL('/get', 'https://allorigins.hexlet.app');
   proxyUrl.searchParams.set('url', link);
@@ -105,7 +104,6 @@ export default () => {
     }
     watchedState.loadingProcess.error = [errorMessageKey];
   }
-
   
   const checker = (watchedState, synchronizePosts, timeout = 5000) => {
     const check = () => {
@@ -124,7 +122,6 @@ export default () => {
       })
     };
     check()
-    
   }
 
   const buttonsClick = (watchedState) => () => {
@@ -155,7 +152,6 @@ export default () => {
         watchedState.loadingProcess.status = 'failed'
       })
   };
-
 
   initI18n()
     .then((i18nInstance) => {

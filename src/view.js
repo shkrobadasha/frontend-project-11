@@ -57,12 +57,10 @@ export default (elements, i18n, state) => {
   }
 
   const renderPosts = (elements, postsArray) => {
-  
     if(elements.postsContainer.querySelector('.card') === null){
       const firstPostsEl = renderTemplate(`${i18n.t('interface.postsTitle')}`);
       elements.postsContainer.append(firstPostsEl);
     }
-
     const newPostsContainer = elements.postsContainer.querySelector('ul');
     const arrayOfPostsEl = postsArray.map((post) => {
       const liPostElem = document.createElement('li');
@@ -88,21 +86,26 @@ export default (elements, i18n, state) => {
     arrayOfPostsEl.forEach(postElement => newPostsContainer.append(postElement));
   }
 
-  const renderContent = (elements, feed) => {
+  const renderFeeds = (elements, feedsArray) => {
     if(elements.feedsContainer.querySelector('.card') === null){
       const firstFeedsEl = renderTemplate(`${i18n.t('interface.feedsTitle')}`);
       elements.feedsContainer.append(firstFeedsEl);
     }
-    const liFeedElem = document.createElement('li');
-    liFeedElem.classList.add('list-group-item', 'border-0', 'border-end-0');
-    const hThreeElem = document.createElement('h3');
-    hThreeElem.classList.add('h6', 'm-0');
-    hThreeElem.textContent = `${feed.feedTitle}`;
-    const pElem = document.createElement('p');
-    pElem.classList.add('m-0', 'small', 'text-black-50');
-    pElem.textContent =  `${feed.feedDescription}`;
-    liFeedElem.append(hThreeElem, pElem);
-    elements.feedsContainer.querySelector('ul').prepend(liFeedElem);
+    const newFeedsContainer = elements.feedsContainer.querySelector('ul');
+    const arrayOfFeedsEl = feedsArray.map((feed) => {
+      const liFeedElem = document.createElement('li');
+      liFeedElem.classList.add('list-group-item', 'border-0', 'border-end-0');
+      const hThreeElem = document.createElement('h3');
+      hThreeElem.classList.add('h6', 'm-0');
+      hThreeElem.textContent = `${feed.feedTitle}`;
+      const pElem = document.createElement('p');
+      pElem.classList.add('m-0', 'small', 'text-black-50');
+      pElem.textContent =  `${feed.feedDescription}`;
+      liFeedElem.append(hThreeElem, pElem);
+      return liFeedElem
+    })
+    newFeedsContainer.innerHTML = ''
+    arrayOfFeedsEl.forEach(feedElement => newFeedsContainer.prepend(feedElement));
   }
 
   const renderWindow = (currentId) => {
@@ -133,6 +136,7 @@ export default (elements, i18n, state) => {
       elements.feedbackContainer.textContent = t('sucсess.successMessage');
       elements.form.reset();
       elements.form.querySelector('input').focus();
+      renderFeeds(elements, state.feeds);
 
     }else if (path === 'loadingProcess.error'){
       elements.form.querySelector('input').classList.add('is-invalid');
@@ -144,10 +148,9 @@ export default (elements, i18n, state) => {
       });
       elements.feedbackContainer.textContent = `${strOfErrors.trim()}`
     } else if (path === 'loadingProcess.status'){
-      if (value === 'sucessful') {
-        state.feeds.forEach((feed) => renderContent(elements, feed));
-        renderPosts(elements, state.posts);
-      } 
+        if (value === 'sucessful') {
+          renderPosts(elements, state.posts);
+        } 
     } else if (path === 'uiState.seenPosts') {
       const addViewedClass = (postId) => {
         const postElement = elements.postsContainer.querySelector(`[data-id="${postId}"]`);
